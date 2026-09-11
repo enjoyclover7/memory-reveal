@@ -7,6 +7,7 @@ const cardGrid = $('#cardGrid');
 const rankingService = new RankingServiceAdapter();
 let reward = null;
 let timerFrame = 0;
+let onlineSessionId = null;
 
 function formatTime(milliseconds) {
   const total = Math.max(0, Math.round(milliseconds));
@@ -61,7 +62,17 @@ function updateTimer() {
   if (game.state === 'PLAYING' || game.state === 'MATCH_CHECK') timerFrame = requestAnimationFrame(updateTimer);
 }
 
-function startGame() {
+async function startGame(event) {
+  const button = event?.currentTarget;
+  if (button) button.disabled = true;
+  onlineSessionId = null;
+  try {
+    onlineSessionId = await rankingService.startSession();
+  } catch (error) {
+    console.warn(error.message);
+  } finally {
+    if (button) button.disabled = false;
+  }
   reward = imageTools.pickRewardImage();
   const image = $('#rewardImage');
   image.src = reward.src;
@@ -131,9 +142,9 @@ $('#scoreForm').addEventListener('submit', async (event) => {
   try {
     await rankingService.submit({
       nickname: $('#nickname').value,
-      clearTimeMs: game.elapsedMs(),
       moves: game.moves,
       rewardImageId: reward.id,
+      sessionId: onlineSessionId,
     });
     message.textContent = '기록이 등록되었습니다!';
     event.submitter.disabled = true;

@@ -1,5 +1,3 @@
-const STORAGE_KEY = 'memory-reveal:scores';
-
 function validateNickname(value) {
   const nickname = value.trim().replace(/\s+/g, ' ');
   if (nickname.length < 2 || nickname.length > 12) throw new Error('닉네임은 2~12자로 입력해 주세요.');
@@ -7,50 +5,54 @@ function validateNickname(value) {
   return nickname;
 }
 
-function validScore(score) {
-  return Number.isFinite(score.clear_time_ms)
-    && score.clear_time_ms >= 3000
-    && Number.isInteger(score.moves)
-    && score.moves >= 10
-    && score.moves <= 999;
-}
-
 class RankingService {
-  // 서버 연결 전 임시 저장소. 추후 이 클래스 내부만 API fetch 구현으로 교체한다.
-  async submit({ nickname, clearTimeMs, moves, rewardImageId }) {
-    const record = {
-      id: crypto.randomUUID(),
-      nickname: validateNickname(nickname),
-      clear_time_ms: Math.round(clearTimeMs),
-      moves: Number(moves),
-      reward_image_id: rewardImageId,
-      game_version: '1.0.0',
-      created_at: new Date().toISOString(),
+  constructor() {
+    const config = window.MemoryRevealSupabaseConfig;
+    if (!config?.url || !config?.anonKey) throw new Error('온라인 랭킹 설정이 없습니다.');
+    this.rpcUrl = `${config.url}/rest/v1/rpc`;
+    this.headers = {
+      apikey: config.anonKey,
+      Authorization: `Bearer ${config.anonKey}`,
+      'Content-Type': 'application/json',
     };
-    if (!validScore(record)) throw new Error('유효하지 않은 게임 기록입니다.');
-    const scores = this.readAll();
-    scores.push(record);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(scores));
-    return record;
+  }
+
+  async call(functionName, body) {
+    let response;
+    try {
+      response = await fetch(`${this.rpcUrl}/${functionName}`, {
+        method: 'POST',
+        headers: this.headers,
+        body: JSON.stringify(body),
+      });
+    } catch {
+      throw new Error('인터넷 연결을 확인해 주세요.');
+    }
+    if (!response.ok) {
+      let message = '';
+      try { message = (await response.json()).message || ''; } catch {}
+      throw new Error(message || '온라인 랭킹 서버에 연결하지 못했습니다.');
+    }
+    if (response.status === 204) return null;
+    return response.json();
+  }
+
+  async startSession() {
+    return this.call('start_memory_game', {});
+  }
+
+  async submit({ nickname, moves, rewardImageId, sessionId }) {
+    if (!sessionId) throw new Error('온라인 게임 세션이 없어 기록을 등록할 수 없습니다.');
+    return this.call('submit_memory_score', {
+      p_session_id: sessionId,
+      p_nickname: validateNickname(nickname),
+      p_moves: Number(moves),
+      p_reward_image_id: rewardImageId,
+    });
   }
 
   async getLeaderboard() {
-    const bestByName = new Map();
-    for (const score of this.readAll().filter(validScore)) {
-      const key = score.nickname.toLocaleLowerCase('ko-KR');
-      const current = bestByName.get(key);
-      if (!current || this.compare(score, current) < 0) bestByName.set(key, score);
-    }
-    return [...bestByName.values()].sort((a, b) => this.compare(a, b)).slice(0, 100);
-  }
-
-  compare(a, b) {
-    return a.clear_time_ms - b.clear_time_ms || a.moves - b.moves || a.created_at.localeCompare(b.created_at);
-  }
-
-  readAll() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
-    catch { return []; }
+    return this.call('get_memory_leaderboard', { p_limit: 100 });
   }
 }
 
