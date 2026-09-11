@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7c9d5">
+  <title>Memory Reveal</title>
+  <link rel="stylesheet" href="./src/styles/main.css">
+</head>
+<body>
+  <main class="app" id="app">
+    <section class="screen start-screen is-active" id="startScreen" aria-labelledby="gameTitle">
+      <div class="start-collage" aria-hidden="true">
+        <div class="hero-photo"></div>
+        <div class="polaroid polaroid-one"></div>
+        <div class="polaroid polaroid-two"></div>
+        <div class="polaroid polaroid-three"></div>
+        <span class="doodle heart-one">♡</span>
+        <span class="doodle heart-two">♡</span>
+      </div>
+      <h1 class="sr-only" id="gameTitle">Memory Reveal</h1>
+      <div class="start-actions">
+        <button class="primary-button" id="startButton" type="button">
+          <span>GAME START</span><span class="play-icon">▶</span>
+        </button>
+        <button class="secondary-button" id="rankingButton" type="button">
+          <span class="trophy-icon">♕</span><span>RANKING</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="screen game-screen" id="gameScreen" aria-label="카드 맞추기 게임">
+      <header class="game-header">
+        <button class="icon-button" id="homeButton" type="button" aria-label="시작 화면으로">‹</button>
+        <div class="stat"><span>TIME</span><strong id="timeDisplay">00:00.00</strong></div>
+        <div class="progress-wrap" aria-label="게임 진행률"><span id="progressBar"></span></div>
+      </header>
+      <div class="board-shell" id="boardShell">
+        <img class="reward-image" id="rewardImage" alt="카드를 맞추면 공개되는 보상 이미지">
+        <div class="card-grid" id="cardGrid" aria-label="4열 5행 카드판"></div>
+        <div class="clear-panel" id="clearPanel" aria-hidden="true">
+          <p class="clear-label">CLEAR</p>
+          <div class="clear-stats">
+            <span><small>TIME</small><strong id="clearTime">00:00.00</strong></span>
+          </div>
+          <p class="replay-message">다시 하면 새로운 사진을 볼 수 있어요</p>
+          <form id="scoreForm" novalidate>
+            <label for="nickname">랭킹에 남길 닉네임</label>
+            <div class="nickname-row">
+              <input id="nickname" name="nickname" minlength="2" maxlength="12" autocomplete="nickname" placeholder="2~12자">
+              <button type="submit">등록</button>
+            </div>
+            <p class="form-message" id="formMessage" role="status"></p>
+          </form>
+          <div class="clear-actions">
+            <button id="replayButton" type="button">다시 하기</button>
+            <button id="clearRankingButton" type="button">랭킹 보기</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen ranking-screen" id="rankingScreen" aria-labelledby="rankingTitle">
+      <header class="ranking-header">
+        <button class="icon-button dark" id="rankingBackButton" type="button" aria-label="뒤로 가기">‹</button>
+        <div><p>MEMORY REVEAL</p><h2 id="rankingTitle">RANKING</h2></div>
+        <span class="crown">♕</span>
+      </header>
+      <div class="ranking-card">
+        <div class="ranking-status" id="rankingStatus">기록을 불러오는 중...</div>
+        <ol class="ranking-list" id="rankingList"></ol>
+      </div>
+    </section>
+  </main>
+  <script defer src="./src/config/images.js"></script>
+  <script defer src="./src/game/game.js"></script>
+  <script defer src="./src/services/ranking.js"></script>
+  <script defer src="./src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+const imageTools = window.MemoryRevealImages;
+const RankingServiceAdapter = window.MemoryRevealRanking.RankingService;
+
+const $ = (selector) => document.querySelector(selector);
+const screens = [...document.querySelectorAll('.screen')];
+const cardGrid = $('#cardGrid');
+const rankingService = new RankingServiceAdapter();
+let reward = null;
+let timerFrame = 0;
+
+function formatTime(milliseconds) {
+  const total = Math.max(0, Math.round(milliseconds));
+  const minutes = Math.floor(total / 60000);
+  const seconds = Math.floor((total % 60000) / 1000);
+  const hundredths = Math.floor((total % 1000) / 10);
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(hundredths).padStart(2, '0')}`;
+}
+
+function showScreen(id) {
+  screens.forEach((screen) => screen.classList.toggle('is-active', screen.id === id));
+}
+
+function createCards(cards) {
+  cardGrid.replaceChildren(...cards.map((card, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'memory-card';
+    button.dataset.cardId = card.id;
+    button.setAttribute('aria-label', `${index + 1}번 카드`);
+    button.innerHTML = `<span class="card-inner"><span class="card-back"><i></i></span><span class="card-front" aria-label="${card.label}"><img src="${card.image}" alt="" draggable="false"></span></span>`;
+    return button;
+  }));
+}
+
+const game = new MemoryGame({
+  onUpdate(snapshot) {
+    snapshot.cards.forEach((card) => {
+      const element = cardGrid.querySelector(`[data-card-id="${card.id}"]`);
+      if (!element) return;
+      element.classList.toggle('is-flipped', card.status === 'flipped');
+      element.classList.toggle('is-matched', card.status === 'matched');
+      element.disabled = snapshot.state === 'MATCH_CHECK' || card.status !== 'hidden';
+    });
+    $('#progressBar').style.width = `${snapshot.matches * 10}%`;
+  },
+  onMatch() {},
+  onClear(snapshot) {
+    cancelAnimationFrame(timerFrame);
+    $('#timeDisplay').textContent = formatTime(snapshot.elapsedMs);
+    $('#clearTime').textContent = formatTime(snapshot.elapsedMs);
+    $('#gameScreen').classList.add('is-clear');
+    setTimeout(() => {
+      $('#clearPanel').classList.add('is-visible');
+      $('#clearPanel').setAttribute('aria-hidden', 'false');
+    }, 2000);
+  },
+});
+
+function updateTimer() {
+  $('#timeDisplay').textContent = formatTime(game.elapsedMs());
+  if (game.state === 'PLAYING' || game.state === 'MATCH_CHECK') timerFrame = requestAnimationFrame(updateTimer);
+}
+
+function startGame() {
+  reward = imageTools.pickRewardImage();
+  const image = $('#rewardImage');
+  image.src = reward.src;
+  image.style.objectPosition = reward.position;
+  $('#clearPanel').classList.remove('is-visible');
+  $('#clearPanel').setAttribute('aria-hidden', 'true');
+  $('#gameScreen').classList.remove('is-clear');
+  $('#formMessage').textContent = '';
+  $('#scoreForm').reset();
+  game.start();
+  createCards(game.cards);
+  game.onUpdate(game.snapshot());
+  showScreen('gameScreen');
+  cancelAnimationFrame(timerFrame);
+  timerFrame = requestAnimationFrame(updateTimer);
+}
+
+async function showRanking() {
+  showScreen('rankingScreen');
+  const status = $('#rankingStatus');
+  const list = $('#rankingList');
+  status.hidden = false;
+  status.textContent = '기록을 불러오는 중...';
+  list.replaceChildren();
+  try {
+    const scores = await rankingService.getLeaderboard();
+    if (!scores.length) {
+      status.textContent = '아직 등록된 기록이 없어요.\n첫 번째 기록의 주인공이 되어보세요!';
+      return;
+    }
+    status.hidden = true;
+    list.replaceChildren(...scores.map((score, index) => {
+      const item = document.createElement('li');
+      if (index < 3) item.className = `top-rank rank-${index + 1}`;
+      const rank = document.createElement('strong');
+      const name = document.createElement('span');
+      const time = document.createElement('span');
+      rank.textContent = index + 1;
+      name.textContent = score.nickname;
+      time.textContent = formatTime(score.clear_time_ms);
+      item.append(rank, name, time);
+      return item;
+    }));
+  } catch {
+    status.textContent = '랭킹을 불러오지 못했습니다.\n잠시 후 다시 시도해 주세요.';
+  }
+}
+
+cardGrid.addEventListener('click', (event) => {
+  const card = event.target.closest('.memory-card');
+  if (card) game.select(card.dataset.cardId);
+});
+
+$('#startButton').addEventListener('click', startGame);
+$('#replayButton').addEventListener('click', startGame);
+$('#rankingButton').addEventListener('click', showRanking);
+$('#clearRankingButton').addEventListener('click', showRanking);
+$('#rankingBackButton').addEventListener('click', () => showScreen('startScreen'));
+$('#homeButton').addEventListener('click', () => {
+  cancelAnimationFrame(timerFrame);
+  showScreen('startScreen');
+});
+
+$('#scoreForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const message = $('#formMessage');
+  try {
+    await rankingService.submit({
+      nickname: $('#nickname').value,
+      clearTimeMs: game.elapsedMs(),
+      moves: game.moves,
+      rewardImageId: reward.id,
+    });
+    message.textContent = '기록이 등록되었습니다!';
+    event.submitter.disabled = true;
+  } catch (error) {
+    message.textContent = error.message;
+  }
+});
+
+imageTools.preloadRewardImages();
