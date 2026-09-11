@@ -10,32 +10,22 @@ button { -webkit-tap-highlight-color: transparent; }
 .screen { display: none; min-height: 100dvh; position: relative; }
 .screen.is-active { display: flex; }
 
-.start-screen { overflow: hidden; align-items: flex-end; padding: 0 9% max(7vh, 34px); isolation: isolate; background: linear-gradient(#a9dcff 0 30%, #fff1e5 74%, #f2e6d4); }
-.start-screen::after { content: ''; position: absolute; inset: 55% 0 0; z-index: -1; background: linear-gradient(transparent, #fff9 42%, #fff0), radial-gradient(circle at 14% 72%, #fff 0 3%, transparent 12%), radial-gradient(circle at 77% 85%, #fff 0 4%, transparent 14%); backdrop-filter: blur(1px); }
-.start-collage, .hero-photo { position: absolute; inset: 0; z-index: -2; }
-.hero-photo { background: url('../../시작화면.png') 35% 26% / 152% auto no-repeat; filter: saturate(.96) brightness(1.035); }
-.polaroid { position: absolute; width: 31%; height: 23%; right: -2%; padding: 7px; border: 7px solid #fffdf8; background-image: url('../../시작화면.png'); background-repeat: no-repeat; box-shadow: 0 8px 20px #55404a33; }
-.polaroid-one { top: 2%; transform: rotate(4deg); background-size: 330% auto; background-position: 91% 4%; }
-.polaroid-two { top: 25%; right: -4%; transform: rotate(7deg); background-size: 330% auto; background-position: 93% 30%; }
-.polaroid-three { top: 47%; right: 1%; transform: rotate(-5deg); background-size: 330% auto; background-position: 91% 51%; }
-.doodle { position: absolute; color: white; font: 700 clamp(45px, 13vw, 70px)/1 sans-serif; text-shadow: 0 2px 7px #4b8eb337; transform: rotate(-16deg); }
-.heart-one { left: 5%; top: 5%; }.heart-two { right: 7%; top: 64%; transform: rotate(12deg); }
-.start-actions { width: 100%; display: grid; gap: 14px; z-index: 2; }
-.start-actions button { border: 2px solid #fff9; min-height: 72px; border-radius: 999px; font-weight: 800; letter-spacing: .18em; cursor: pointer; box-shadow: 0 10px 24px #7b394633; }
-.primary-button { color: #633946; background: linear-gradient(105deg, #fff9, #ffbfd0 43%, #ff94aa); display: flex; align-items: center; justify-content: center; padding-left: 8%; gap: 10%; font-size: clamp(16px, 5vw, 24px); }
-.play-icon { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; color: white; background: #c84f72; letter-spacing: 0; font-size: 20px; box-shadow: inset 0 1px 2px #fff8; }
-.secondary-button { color: white; background: linear-gradient(120deg, #615b5d, #332f31); font-size: clamp(15px, 4.5vw, 21px); }
-.trophy-icon { font-size: 30px; margin-right: 18px; }
+.start-screen { overflow: hidden; background: #eee0e1 url('../../시작화면.png') center / cover no-repeat; }
+.start-collage { display: none; }
+.start-actions { position: absolute; inset: auto 12.5% 6.2%; height: 20.5%; display: grid; grid-template-rows: 1.15fr 1fr; gap: 3.5%; z-index: 2; }
+.start-actions button { width: 100%; min-height: 0; border: 0; border-radius: 999px; background: transparent; color: transparent; cursor: pointer; opacity: 0; }
+.start-actions button:focus-visible { opacity: 1; outline: 3px solid white; outline-offset: 3px; box-shadow: 0 0 0 6px #d94e76aa; }
+.play-icon, .trophy-icon { color: transparent; }
 
-.game-screen { flex-direction: column; background: linear-gradient(150deg, #fff8f0, #f9bfd0); padding: max(env(safe-area-inset-top), 12px) 10px max(env(safe-area-inset-bottom), 10px); }
-.game-header { min-height: 52px; display: grid; grid-template-columns: 42px 1fr 42px; align-items: center; gap: 5px; color: var(--ink); position: relative; transition: opacity .2s ease; }
+.game-screen { flex-direction: column; overflow: hidden; background: #dcb2b8; }
+.game-header { position: absolute; z-index: 5; top: max(env(safe-area-inset-top), 12px); left: 12px; right: 12px; min-height: 44px; display: grid; grid-template-columns: 42px 1fr 42px; align-items: center; gap: 5px; color: var(--ink); transition: opacity .2s ease; }
 .game-screen.is-clear .game-header { opacity: 0; pointer-events: none; }
-.icon-button { width: 38px; height: 38px; border: 0; border-radius: 50%; background: #fff9; color: #a74f68; font-size: 32px; line-height: 1; cursor: pointer; box-shadow: 0 4px 12px #8b52601f; }
-.stat { justify-self: center; text-align: center; display: grid; gap: 0; padding: 5px 16px 6px; border-radius: 15px; background: rgba(255,255,255,.84); box-shadow: 0 3px 12px #89536518; backdrop-filter: blur(7px); }.stat span { font-size: 7px; letter-spacing: .22em; color: #9c6575; }.stat strong { font-size: 14px; font-variant-numeric: tabular-nums; }
-.progress-wrap { position: absolute; height: 2px; background: #fff8; left: 4px; right: 4px; bottom: 0; border-radius: 9px; overflow: hidden; }.progress-wrap span { display: block; height: 100%; width: 0; background: var(--pink); transition: width .4s; }
-.board-shell { flex: 1; position: relative; min-height: 0; margin-top: 8px; border-radius: 22px; overflow: hidden; background: #dcb2b8; box-shadow: 0 16px 35px #82516645; }
+.icon-button { width: 38px; height: 38px; border: 1px solid #ffffff73; border-radius: 50%; background: rgba(255,255,255,.38); color: #a74f68; font-size: 32px; line-height: 1; cursor: pointer; box-shadow: 0 3px 12px #4d2a3330; backdrop-filter: blur(5px); }
+.stat { justify-self: center; text-align: center; display: grid; gap: 0; padding: 5px 16px 6px; border: 1px solid #ffffff73; border-radius: 15px; background: rgba(255,255,255,.38); box-shadow: 0 3px 12px #4d2a3324; backdrop-filter: blur(5px); }.stat span { font-size: 7px; letter-spacing: .22em; color: #8d5365; }.stat strong { font-size: 14px; font-variant-numeric: tabular-nums; }
+.progress-wrap { display: none; }
+.board-shell { position: absolute; inset: 0; overflow: hidden; background: #dcb2b8; }
 .reward-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.card-grid { position: absolute; inset: 0; z-index: 2; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(5, 1fr); gap: 4px; padding: 4px; }
+.card-grid { position: absolute; z-index: 2; top: calc(max(env(safe-area-inset-top), 12px) + 54px); left: 4px; right: 4px; bottom: max(env(safe-area-inset-bottom), 4px); display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(5, 1fr); gap: 4px; }
 .memory-card { perspective: 600px; border: 0; padding: 0; background: transparent; cursor: pointer; min-width: 0; min-height: 0; transition: opacity .28s .18s, transform .28s .18s; }
 .card-inner { display: block; position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .36s cubic-bezier(.2,.75,.25,1); }
 .memory-card.is-flipped .card-inner, .memory-card.is-matched .card-inner { transform: rotateY(180deg); }
@@ -64,6 +54,6 @@ button { -webkit-tap-highlight-color: transparent; }
 .ranking-status { white-space: pre-line; text-align: center; color: #866671; line-height: 1.7; padding: 35vh 10px 20px; transform: translateY(-25%); }
 .ranking-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }.ranking-list li { display: grid; grid-template-columns: 34px 1fr auto; grid-template-areas: 'rank name time' 'rank moves moves'; align-items: center; padding: 12px; border-radius: 15px; background: #fff; color: #59444b; box-shadow: 0 3px 12px #96506614; }.ranking-list strong { grid-area: rank; font-size: 20px; color: #b26a7d; }.ranking-list span:nth-of-type(1) { grid-area: name; font-weight: 700; }.ranking-list span:nth-of-type(2) { grid-area: time; font-weight: 800; font-variant-numeric: tabular-nums; }.ranking-list small { grid-area: moves; color: #a47f89; font-size: 9px; letter-spacing: .08em; text-align: right; }.ranking-list .top-rank { background: linear-gradient(110deg, #fff, #fff2c8); }.ranking-list .rank-1 strong { color: #e0a823; }
 
-@media (max-width: 360px) { .game-screen { padding-left: 5px; padding-right: 5px; }.card-grid { gap: 3px; padding: 3px; }.start-actions button { min-height: 62px; }.play-icon { width: 48px; height: 48px; } }
+@media (max-width: 360px) { .card-grid { left: 3px; right: 3px; gap: 3px; } }
 @media (min-width: 501px) { body { background: radial-gradient(circle at top, #ffe9ef, #d9c8cc); }.app { min-height: min(100dvh, 920px); }.screen { min-height: min(100dvh, 920px); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
