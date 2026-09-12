@@ -62,6 +62,11 @@ const game = new MemoryGame({
     $('#timeDisplay').textContent = formatTime(snapshot.elapsedMs);
     $('#clearTime').textContent = formatTime(snapshot.elapsedMs);
     $('#gameScreen').classList.add('is-clear');
+    const completedCollection = imageTools.hasSeenAllImages();
+    $('#replayButton').textContent = completedCollection ? '처음부터' : '다시 하기';
+    $('.replay-message').textContent = completedCollection
+      ? '모든 사진을 확인했어요'
+      : '다시 하면 새로운 사진을 볼 수 있어요';
     setTimeout(() => {
       $('#clearPanel').classList.add('is-visible');
       $('#clearPanel').setAttribute('aria-hidden', 'false');
@@ -88,8 +93,8 @@ async function startGame(event) {
   $('#gameScreen').classList.remove('is-clear');
   $('#formMessage').textContent = '';
   $('#scoreForm').reset();
-  $('#timeDisplay').textContent = formatTime(0);
-  game.preview();
+  $('#timeDisplay').textContent = 'READY';
+  game.prepare();
   await preloadImages([reward.src, ...game.cards.map((card) => card.image)]);
   if (sequenceId !== startSequenceId) {
     if (button) button.disabled = false;
@@ -100,6 +105,12 @@ async function startGame(event) {
   showScreen('gameScreen');
   cancelAnimationFrame(timerFrame);
 
+  await wait(500);
+  if (sequenceId !== startSequenceId) {
+    if (button) button.disabled = false;
+    return;
+  }
+  game.revealPreview();
   await wait(1000);
   if (sequenceId !== startSequenceId) {
     if (button) button.disabled = false;
@@ -107,6 +118,13 @@ async function startGame(event) {
   }
   game.hidePreview();
   await wait(380);
+  if (sequenceId !== startSequenceId) {
+    if (button) button.disabled = false;
+    return;
+  }
+
+  $('#timeDisplay').textContent = 'START!';
+  await wait(250);
   if (sequenceId !== startSequenceId) {
     if (button) button.disabled = false;
     return;
@@ -161,7 +179,10 @@ cardGrid.addEventListener('click', (event) => {
 });
 
 $('#startButton').addEventListener('click', startGame);
-$('#replayButton').addEventListener('click', startGame);
+$('#replayButton').addEventListener('click', (event) => {
+  if (imageTools.hasSeenAllImages()) imageTools.resetSeenImages();
+  startGame(event);
+});
 $('#rankingButton').addEventListener('click', showRanking);
 $('#clearRankingButton').addEventListener('click', showRanking);
 $('#rankingBackButton').addEventListener('click', () => showScreen('startScreen'));

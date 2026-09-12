@@ -12,23 +12,36 @@ const REWARD_IMAGES = [
   { id: 'stage11', src: './배경사진/stage11.png', position: '50% 43%' },
 ];
 
+const SEEN_IMAGES_KEY = 'memory-reveal:seen-images';
+
+function readSeenImages() {
+  try {
+    const stored = JSON.parse(sessionStorage.getItem(SEEN_IMAGES_KEY) || '[]');
+    return stored.filter((id) => REWARD_IMAGES.some((image) => image.id === id));
+  } catch {
+    return window.MemoryRevealSeenImages || [];
+  }
+}
+
+function writeSeenImages(ids) {
+  window.MemoryRevealSeenImages = ids;
+  try { sessionStorage.setItem(SEEN_IMAGES_KEY, JSON.stringify(ids)); } catch {}
+}
+
+function hasSeenAllImages() {
+  return readSeenImages().length >= REWARD_IMAGES.length;
+}
+
+function resetSeenImages() {
+  writeSeenImages([]);
+}
+
 function pickRewardImage() {
-  let previous = null;
-  try {
-    previous = sessionStorage.getItem('memory-reveal:last-image');
-  } catch {
-    previous = window.MemoryRevealLastImage || null;
-  }
-  const candidates = REWARD_IMAGES.length > 1
-    ? REWARD_IMAGES.filter((image) => image.id !== previous)
-    : REWARD_IMAGES;
+  if (hasSeenAllImages()) resetSeenImages();
+  const seen = readSeenImages();
+  const candidates = REWARD_IMAGES.filter((image) => !seen.includes(image.id));
   const selected = candidates[Math.floor(Math.random() * candidates.length)];
-  window.MemoryRevealLastImage = selected.id;
-  try {
-    sessionStorage.setItem('memory-reveal:last-image', selected.id);
-  } catch {
-    // file:// 환경에서 저장소가 차단돼도 게임 진행은 유지한다.
-  }
+  writeSeenImages([...seen, selected.id]);
   return selected;
 }
 
@@ -40,4 +53,10 @@ function preloadRewardImages() {
   });
 }
 
-window.MemoryRevealImages = { REWARD_IMAGES, pickRewardImage, preloadRewardImages };
+window.MemoryRevealImages = {
+  REWARD_IMAGES,
+  pickRewardImage,
+  preloadRewardImages,
+  hasSeenAllImages,
+  resetSeenImages,
+};

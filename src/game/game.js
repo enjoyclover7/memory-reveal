@@ -42,9 +42,15 @@ class MemoryGame {
     this.timeoutId = null;
   }
 
-  preview() {
+  prepare() {
     clearTimeout(this.timeoutId);
     this.reset();
+    this.state = 'READY';
+    this.onUpdate(this.snapshot());
+  }
+
+  revealPreview() {
+    if (this.state !== 'READY') return;
     this.state = 'PREVIEW';
     this.cards.forEach((card) => { card.status = 'flipped'; });
     this.onUpdate(this.snapshot());
