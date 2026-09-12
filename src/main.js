@@ -8,6 +8,7 @@ const rankingService = new RankingServiceAdapter();
 let reward = null;
 let timerFrame = 0;
 let onlineSessionId = null;
+let scoreReadyPromise = null;
 let startSequenceId = 0;
 
 const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -59,6 +60,11 @@ const game = new MemoryGame({
   onMatch() {},
   onClear(snapshot) {
     cancelAnimationFrame(timerFrame);
+    scoreReadyPromise = rankingService.finishSession({
+      sessionId: onlineSessionId,
+      moves: snapshot.moves,
+      rewardImageId: reward.id,
+    }).then(() => null).catch((error) => error);
     $('#timeDisplay').textContent = formatTime(snapshot.elapsedMs);
     $('#clearTime').textContent = formatTime(snapshot.elapsedMs);
     $('#gameScreen').classList.add('is-clear');
@@ -84,6 +90,7 @@ async function startGame(event) {
   const button = event?.currentTarget;
   if (button) button.disabled = true;
   onlineSessionId = null;
+  scoreReadyPromise = null;
   reward = imageTools.pickRewardImage();
   const image = $('#rewardImage');
   image.src = reward.src;
@@ -197,6 +204,8 @@ $('#scoreForm').addEventListener('submit', async (event) => {
   event.preventDefault();
   const message = $('#formMessage');
   try {
+    const finishError = scoreReadyPromise ? await scoreReadyPromise : new Error('확정된 게임 기록이 없습니다.');
+    if (finishError) throw finishError;
     await rankingService.submit({
       nickname: $('#nickname').value,
       moves: game.moves,

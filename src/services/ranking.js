@@ -41,6 +41,15 @@ class RankingService {
     return this.call('start_memory_game', {});
   }
 
+  async finishSession({ sessionId, moves, rewardImageId }) {
+    if (!sessionId) throw new Error('온라인 게임 세션이 없어 기록을 확정할 수 없습니다.');
+    return this.call('finish_memory_game', {
+      p_session_id: sessionId,
+      p_moves: Number(moves),
+      p_reward_image_id: rewardImageId,
+    });
+  }
+
   async submit({ nickname, moves, rewardImageId, sessionId }) {
     if (!sessionId) throw new Error('온라인 게임 세션이 없어 기록을 등록할 수 없습니다.');
     return this.call('submit_memory_score', {
