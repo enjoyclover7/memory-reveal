@@ -111,7 +111,7 @@ async function startGame(event) {
     return;
   }
   game.revealPreview();
-  await wait(1000);
+  await wait(2000);
   if (sequenceId !== startSequenceId) {
     if (button) button.disabled = false;
     return;
