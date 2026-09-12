@@ -6,6 +6,10 @@ const REWARD_IMAGES = [
   { id: 'stage5', src: './배경사진/stage5.png', position: '50% 45%' },
   { id: 'stage6', src: './배경사진/stage6.png', position: '50% 42%' },
   { id: 'stage7', src: './배경사진/stage7.png', position: '64% 48%' },
+  { id: 'stage8', src: './배경사진/stage8.png', position: '50% 42%' },
+  { id: 'stage9', src: './배경사진/stage9.png', position: '50% 45%' },
+  { id: 'stage10', src: './배경사진/stage10.png', position: '50% 42%' },
+  { id: 'stage11', src: './배경사진/stage11.png', position: '50% 43%' },
 ];
 
 function pickRewardImage() {
