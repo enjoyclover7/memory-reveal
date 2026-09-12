@@ -12,6 +12,15 @@ let startSequenceId = 0;
 
 const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
+function preloadImages(sources) {
+  return Promise.all([...new Set(sources)].map((source) => new Promise((resolve) => {
+    const image = new Image();
+    image.onload = resolve;
+    image.onerror = resolve;
+    image.src = source;
+  })));
+}
+
 function formatTime(milliseconds) {
   const total = Math.max(0, Math.round(milliseconds));
   const minutes = Math.floor(total / 60000);
@@ -81,6 +90,11 @@ async function startGame(event) {
   $('#scoreForm').reset();
   $('#timeDisplay').textContent = formatTime(0);
   game.preview();
+  await preloadImages([reward.src, ...game.cards.map((card) => card.image)]);
+  if (sequenceId !== startSequenceId) {
+    if (button) button.disabled = false;
+    return;
+  }
   createCards(game.cards);
   game.onUpdate(game.snapshot());
   showScreen('gameScreen');
@@ -174,5 +188,3 @@ $('#scoreForm').addEventListener('submit', async (event) => {
     message.textContent = error.message;
   }
 });
-
-imageTools.preloadRewardImages();
