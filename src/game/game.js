@@ -42,12 +42,33 @@ class MemoryGame {
     this.timeoutId = null;
   }
 
-  start() {
+  preview() {
     clearTimeout(this.timeoutId);
     this.reset();
+    this.state = 'PREVIEW';
+    this.cards.forEach((card) => { card.status = 'flipped'; });
+    this.onUpdate(this.snapshot());
+  }
+
+  hidePreview() {
+    if (this.state !== 'PREVIEW') return;
+    this.state = 'READY';
+    this.cards.forEach((card) => { card.status = 'hidden'; });
+    this.onUpdate(this.snapshot());
+  }
+
+  start() {
+    if (this.state !== 'READY') return;
     this.state = 'PLAYING';
     this.startedAt = performance.now();
     this.onUpdate(this.snapshot());
+  }
+
+  stop() {
+    clearTimeout(this.timeoutId);
+    this.state = 'START';
+    this.startedAt = 0;
+    this.finishedAt = 0;
   }
 
   select(cardId) {

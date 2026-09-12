@@ -8,6 +8,9 @@ const rankingService = new RankingServiceAdapter();
 let reward = null;
 let timerFrame = 0;
 let onlineSessionId = null;
+let startSequenceId = 0;
+
+const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 function formatTime(milliseconds) {
   const total = Math.max(0, Math.round(milliseconds));
@@ -40,7 +43,7 @@ const game = new MemoryGame({
       if (!element) return;
       element.classList.toggle('is-flipped', card.status === 'flipped');
       element.classList.toggle('is-matched', card.status === 'matched');
-      element.disabled = snapshot.state === 'MATCH_CHECK' || card.status !== 'hidden';
+      element.disabled = snapshot.state !== 'PLAYING' || card.status !== 'hidden';
     });
     $('#progressBar').style.width = `${snapshot.matches * 10}%`;
   },
@@ -63,16 +66,10 @@ function updateTimer() {
 }
 
 async function startGame(event) {
+  const sequenceId = ++startSequenceId;
   const button = event?.currentTarget;
   if (button) button.disabled = true;
   onlineSessionId = null;
-  try {
-    onlineSessionId = await rankingService.startSession();
-  } catch (error) {
-    console.warn(error.message);
-  } finally {
-    if (button) button.disabled = false;
-  }
   reward = imageTools.pickRewardImage();
   const image = $('#rewardImage');
   image.src = reward.src;
@@ -82,11 +79,34 @@ async function startGame(event) {
   $('#gameScreen').classList.remove('is-clear');
   $('#formMessage').textContent = '';
   $('#scoreForm').reset();
-  game.start();
+  $('#timeDisplay').textContent = formatTime(0);
+  game.preview();
   createCards(game.cards);
   game.onUpdate(game.snapshot());
   showScreen('gameScreen');
   cancelAnimationFrame(timerFrame);
+
+  await wait(1000);
+  if (sequenceId !== startSequenceId) {
+    if (button) button.disabled = false;
+    return;
+  }
+  game.hidePreview();
+  await wait(380);
+  if (sequenceId !== startSequenceId) {
+    if (button) button.disabled = false;
+    return;
+  }
+
+  try {
+    onlineSessionId = await rankingService.startSession();
+  } catch (error) {
+    console.warn(error.message);
+  } finally {
+    if (button) button.disabled = false;
+  }
+  if (sequenceId !== startSequenceId) return;
+  game.start();
   timerFrame = requestAnimationFrame(updateTimer);
 }
 
@@ -132,7 +152,9 @@ $('#rankingButton').addEventListener('click', showRanking);
 $('#clearRankingButton').addEventListener('click', showRanking);
 $('#rankingBackButton').addEventListener('click', () => showScreen('startScreen'));
 $('#homeButton').addEventListener('click', () => {
+  startSequenceId += 1;
   cancelAnimationFrame(timerFrame);
+  game.stop();
   showScreen('startScreen');
 });
 
